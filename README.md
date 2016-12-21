@@ -1,4 +1,4 @@
-# Panics [![GoDoc](http://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)](http://godoc.org/github.com/alileza/panics) [![CircleCI](https://circleci.com/gh/alileza/panics/tree/master.png?circle-token=b755a6c93ed8d88c4a2448447214de0272915042&style=shield)](https://circleci.com/gh/alileza/panics)
+# Panics [![GoDoc](http://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)](http://godoc.org/github.com/alileza/panics) [![CircleCI](https://circleci.com/gh/alileza/panics/tree/master.png?style=shield)](https://circleci.com/gh/alileza/panics/tree/master)
 Simple package to catch & notify your panic or exceptions via slack or save into files.
 
 ```go
@@ -12,7 +12,7 @@ panics.SetOptions(&panics.Options{
 	SlackWebhookURL: "https://hooks.slack.com/services/blablabla/blablabla/blabla",
 	Filepath:        "/var/log/myapplication", // it'll generate panics.log
 	
-	Tags: panics.Tags{"host": "127.0.0.1", "datacenter":"aws"}
+	Tags: panics.Tags{"host": "127.0.0.1", "datacenter":"aws"},
 })
 ```
 
