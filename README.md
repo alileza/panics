@@ -1,4 +1,4 @@
-# Panics [![GoDoc](http://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)](http://godoc.org/github.com/alileza/panics) [![CircleCI](https://circleci.com/gh/alileza/panics/tree/master.png?style=shield)](https://circleci.com/gh/alileza/panics/tree/master)
+# Panics [![GoDoc](http://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)](http://godoc.org/github.com/alileza/panics) [![CircleCI](https://circleci.com/gh/alileza/panics/tree/master.png?style=shield)](https://circleci.com/gh/alileza/panics/tree/master) [![GoReportCard](https://goreportcard.com/badge/github.com/alileza/panics)](https://goreportcard.com/report/github.com/alileza/panics)
 Simple package to catch & notify your panic or exceptions via slack or save into files.
 
 ```go
