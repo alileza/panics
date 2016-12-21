@@ -26,12 +26,14 @@ var (
 	tagString       string
 )
 
+type Tags map[string]string
+
 type Options struct {
 	Env             string
 	Filepath        string
 	SentryDSN       string
 	SlackWebhookURL string
-	Tags            map[string]string
+	Tags            Tags
 }
 
 func SetOptions(o *Options) {
