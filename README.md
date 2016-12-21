@@ -10,7 +10,9 @@ import "github.com/alileza/panics"
 panics.SetOptions(&panics.Options{
 	Env:             "TEST",
 	SlackWebhookURL: "https://hooks.slack.com/services/blablabla/blablabla/blabla",
-	Filepath: "/var/log/myapplication", // it'll generate panics.log
+	Filepath:        "/var/log/myapplication", // it'll generate panics.log
+	
+	Tags: panics.Tags{"host": "127.0.0.1", "datacenter":"aws"}
 })
 ```
 
