@@ -1,3 +1,6 @@
+# Panics
+Simple package to catch & notify your panic or exceptions via slack or save into files.
+
 ```go
 import "github.com/alileza/panics"
 ```
@@ -7,9 +10,17 @@ import "github.com/alileza/panics"
 panics.SetOptions(&panics.Options{
 	Env:             "TEST",
 	SlackWebhookURL: "https://hooks.slack.com/services/blablabla/blablabla/blabla",
+	Filepath: "/var/log/myapplication", // it'll generate panics.log
 })
 ```
 
+## Capture Custom Error
+```go
+panics.Capture(
+    "Deposit Anomaly",
+    `{"user_id":123, "deposit_amount" : -100000000}`,
+)
+```
 
 ## Capture Panic on HTTP Handler
 ```go
@@ -26,10 +37,11 @@ router.POST("/", panics.CaptureHTTPRouterHandler(func(w http.ResponseWriter, r *
 }))
 ```
 
-## Capture Custom Error
-```go
-panics.Capture(
-    "Deposit Anomaly",
-    `{"user_id":123, "deposit_amount" : -100000000}`,
-)
-```
+## Example
+### Slack Notification
+![Notification Example](https://monosnap.com/file/Pjkw1uxjV8p0GnjevDwhHesUnTC2Ru.png)
+
+# Authors
+
+* [Ali Reza](mailto:alirezayahya@gmail.com)
+* [Afid Eri](mailto:afid.eri@gmail.com) 
