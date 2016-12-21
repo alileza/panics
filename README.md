@@ -46,4 +46,5 @@ router.POST("/", panics.CaptureHTTPRouterHandler(func(w http.ResponseWriter, r *
 # Authors
 
 * [Ali Reza](mailto:alirezayahya@gmail.com)
-* [Afid Eri](mailto:afid.eri@gmail.com) 
+* [Afid Eri](mailto:afid.eri@gmail.com)
+* [Albert Widiatmoko](https://github.com/albert-widi)
