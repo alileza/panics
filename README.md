@@ -2,7 +2,7 @@
 Simple package to catch & notify your panic or exceptions via slack or save into files.
 
 ```go
-import "github.com/alileza/panics"
+import "github.com/tokopedia/panics"
 ```
 
 ## Configuration
