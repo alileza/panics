@@ -1,4 +1,4 @@
-# Panics
+# Panics [![GoDoc](http://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)](http://godoc.org/github.com/alileza/panics) [![CircleCI](https://circleci.com/gh/alileza/panics/tree/master.png?style=shield)](https://circleci.com/gh/alileza/panics/tree/master) [![GoReportCard](https://goreportcard.com/badge/github.com/alileza/panics)](https://goreportcard.com/report/github.com/alileza/panics)
 Simple package to catch & notify your panic or exceptions via slack or save into files.
 
 ```go
@@ -10,7 +10,9 @@ import "github.com/tokopedia/panics"
 panics.SetOptions(&panics.Options{
 	Env:             "TEST",
 	SlackWebhookURL: "https://hooks.slack.com/services/blablabla/blablabla/blabla",
-	Filepath: "/var/log/myapplication", // it'll generate panics.log
+	Filepath:        "/var/log/myapplication", // it'll generate panics.log
+	
+	Tags: panics.Tags{"host": "127.0.0.1", "datacenter":"aws"},
 })
 ```
 
@@ -44,4 +46,5 @@ router.POST("/", panics.CaptureHTTPRouterHandler(func(w http.ResponseWriter, r *
 # Authors
 
 * [Ali Reza](mailto:alirezayahya@gmail.com)
-* [Afid Eri](mailto:afid.eri@gmail.com) 
+* [Afid Eri](mailto:afid.eri@gmail.com)
+* [Albert Widiatmoko](https://github.com/albert-widi)

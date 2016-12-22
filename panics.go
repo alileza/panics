@@ -13,6 +13,7 @@ import (
 	"runtime/debug"
 
 	"github.com/julienschmidt/httprouter"
+	"strings"
 )
 
 var (
@@ -22,15 +23,17 @@ var (
 	env             string
 	filepath        string
 	slackWebhookURL string
+	tagString       string
 )
+
+type Tags map[string]string
 
 type Options struct {
 	Env             string
 	Filepath        string
 	SentryDSN       string
 	SlackWebhookURL string
-
-	Tags map[string]string
+	Tags            Tags
 }
 
 func SetOptions(o *Options) {
@@ -45,6 +48,12 @@ func SetOptions(o *Options) {
 	if err != nil {
 		log.Printf("[panics] failed to open file %s", fp)
 	}
+
+	var tmp []string
+	for key, val := range o.Tags {
+		tmp = append(tmp, fmt.Sprintf("`%s: %s`", key, val))
+	}
+	tagString = strings.Join(tmp, " | ")
 }
 
 func init() {
@@ -115,6 +124,10 @@ func Capture(err string, message string) {
 func publishError(errs error, reqBody []byte, withStackTrace bool) {
 	errorStack := debug.Stack()
 	t := fmt.Sprintf(`[%s] *%s*`, env, errs.Error())
+
+	if len(tagString) > 0 {
+		t = t + " | " + tagString
+	}
 
 	if reqBody != nil {
 		t = t + (" ```" + string(reqBody) + "```")
