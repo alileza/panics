@@ -208,8 +208,6 @@ func postToSlack(text, snip string) {
 	}
 	b, _ := json.Marshal(payload)
 
-	fmt.Println(string(b))
-
 	req, err := http.NewRequest("POST", slackWebhook.URL, bytes.NewBuffer(b))
 	if err != nil {
 		log.Printf("[panics] error on capturing error : %s \n", err.Error())
