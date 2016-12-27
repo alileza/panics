@@ -12,41 +12,48 @@ import (
 	"os"
 	"runtime/debug"
 
-	"github.com/julienschmidt/httprouter"
 	"strings"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 var (
 	client *http.Client
 	file   *os.File
 
-	env             string
-	filepath        string
-	slackWebhookURL string
-	tagString       string
+	env          string
+	filepath     string
+	slackWebhook SlackWebhook
+	tagString    string
 )
 
 type Tags map[string]string
+type SlackWebhook struct {
+	URL     string
+	Channel string
+}
 
 type Options struct {
-	Env             string
-	Filepath        string
-	SentryDSN       string
-	SlackWebhookURL string
-	Tags            Tags
+	Env          string
+	Filepath     string
+	SentryDSN    string
+	SlackWebhook SlackWebhook
+	Tags         Tags
 }
 
 func SetOptions(o *Options) {
 	filepath = o.Filepath
-	slackWebhookURL = o.SlackWebhookURL
+	slackWebhook = o.SlackWebhook
 
 	env = o.Env
 
-	var err error
-	fp := filepath + "/panics.log"
-	file, err = os.OpenFile(fp, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
-	if err != nil {
-		log.Printf("[panics] failed to open file %s", fp)
+	if filepath != "" {
+		var err error
+		fp := filepath + "/panics.log"
+		file, err = os.OpenFile(fp, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
+		if err != nil {
+			log.Printf("[panics] failed to open file %s", fp)
+		}
 	}
 
 	var tmp []string
@@ -116,6 +123,31 @@ func CaptureHTTPRouterHandler(h httprouter.Handle) httprouter.Handle {
 	}
 }
 
+// CaptureNegroniHandler handle panic on negroni handler.
+func CaptureNegroniHandler(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	var err error
+	request, _ := httputil.DumpRequest(r, true)
+	defer func() {
+		r := recover()
+
+		if r != nil {
+			switch t := r.(type) {
+			case string:
+				err = errors.New(t)
+			case error:
+				err = t
+			default:
+				err = errors.New("Unknown error")
+			}
+
+			publishError(err, request, true)
+
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	}()
+	next(w, r)
+}
+
 // Capture will publish any errors
 func Capture(err string, message ...string) {
 	var tmp string
@@ -131,33 +163,54 @@ func Capture(err string, message ...string) {
 }
 
 func publishError(errs error, reqBody []byte, withStackTrace bool) {
+	var text string
+	var snip string
+	var buffer bytes.Buffer
 	errorStack := debug.Stack()
-	t := fmt.Sprintf(`[%s] *%s*`, env, errs.Error())
+	buffer.WriteString(fmt.Sprintf(`[%s] *%s*`, env, errs.Error()))
 
 	if len(tagString) > 0 {
-		t = t + " | " + tagString
+		buffer.WriteString(" | " + tagString)
 	}
 
 	if reqBody != nil {
-		t = t + (" ```" + string(reqBody) + "```")
+		buffer.WriteString(fmt.Sprintf(" ```%s``` ", string(reqBody)))
 	}
+	text = buffer.String()
+
 	if errorStack != nil && withStackTrace {
-		t = t + (" ```" + string(errorStack) + "```")
+		snip = fmt.Sprintf("```\n%s```", string(errorStack))
 	}
-	if slackWebhookURL != "" {
-		go postToSlack(t)
+
+	if slackWebhook.URL != "" {
+		go postToSlack(buffer.String(), snip)
 	}
 	if file != nil {
-		go file.Write([]byte(t + "\r\n"))
+		go func() {
+			file.Write([]byte(text))
+			file.Write([]byte(snip + "\r\n"))
+		}()
 	}
 }
 
-func postToSlack(t string) {
-	b, _ := json.Marshal(map[string]string{
-		"text": t,
-	})
+func postToSlack(text, snip string) {
+	payload := map[string]interface{}{
+		"text": text,
+		"attachments": []map[string]interface{}{
+			map[string]interface{}{
+				"text":      snip,
+				"mrkdwn_in": []string{"text"},
+			},
+		},
+	}
+	if slackWebhook.Channel != "" {
+		payload["channel"] = slackWebhook.Channel
+	}
+	b, _ := json.Marshal(payload)
 
-	req, err := http.NewRequest("POST", slackWebhookURL, bytes.NewBuffer(b))
+	fmt.Println(string(b))
+
+	req, err := http.NewRequest("POST", slackWebhook.URL, bytes.NewBuffer(b))
 	if err != nil {
 		log.Printf("[panics] error on capturing error : %s \n", err.Error())
 	}
