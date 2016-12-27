@@ -41,9 +41,9 @@ router.POST("/", panics.CaptureHTTPRouterHandler(func(w http.ResponseWriter, r *
 
 ## Capture Panic on negroni custom middleware
 ```go
-http.HandleFunc("/", panics.CaptureHandler(func(w http.ResponseWriter, r *http.Request) {
+http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 	panic("Duh aku panik nih guys")
-}))
+})
 negro := negroni.New()
 negro.Use(negroni.HandlerFunc(CaptureNegroniHandler))
 ```
