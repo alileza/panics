@@ -118,8 +118,17 @@ func CaptureHTTPRouterHandler(h httprouter.Handle) httprouter.Handle {
 }
 
 // Capture will publish any errors
-func Capture(err string, message string) {
-	publishError(errors.New(err), []byte(message), false)
+func Capture(err string, message ...string) {
+	var tmp string
+	for i, val := range message {
+		if i == 0 {
+			tmp += val
+		} else {
+			tmp += fmt.Sprintf("\n\n%s", val)
+		}
+	}
+
+	publishError(errors.New(err), []byte(tmp), false)
 }
 
 func publishError(errs error, reqBody []byte, withStackTrace bool) {
