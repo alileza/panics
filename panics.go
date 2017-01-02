@@ -12,8 +12,9 @@ import (
 	"os"
 	"runtime/debug"
 
-	"github.com/julienschmidt/httprouter"
 	"strings"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 var (
@@ -130,10 +131,10 @@ func publishError(errs error, reqBody []byte, withStackTrace bool) {
 	}
 
 	if reqBody != nil {
-		t = t + (" ```" + string(reqBody) + "```")
+		t = t + ("\n```\n" + string(reqBody) + "```")
 	}
 	if errorStack != nil && withStackTrace {
-		t = t + (" ```" + string(errorStack) + "```")
+		t = t + ("\n```\n" + string(errorStack) + "```")
 	}
 	if slackWebhookURL != "" {
 		go postToSlack(t)
