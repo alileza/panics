@@ -2,7 +2,7 @@
 Simple package to catch & notify your panic or exceptions via slack or save into files.
 
 ```go
-import "github.com/alileza/panics"
+import "github.com/tokopedia/panics"
 ```
 
 ## Configuration
@@ -45,6 +45,6 @@ router.POST("/", panics.CaptureHTTPRouterHandler(func(w http.ResponseWriter, r *
 
 # Authors
 
-* [Ali Reza](mailto:alirezayahya@gmail.com)
+* [Ali Reza](mailto:https://github.com/alileza)
 * [Afid Eri](mailto:afid.eri@gmail.com)
 * [Albert Widiatmoko](https://github.com/albert-widi)

@@ -13,8 +13,9 @@ import (
 	"os"
 	"runtime/debug"
 
-	"github.com/julienschmidt/httprouter"
 	"strings"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 var (
@@ -166,8 +167,17 @@ func CaptureHTTPRouterHandler(h httprouter.Handle) httprouter.Handle {
 }
 
 // Capture will publish any errors
-func Capture(err string, message string) {
-	publishError(errors.New(err), []byte(message), false)
+func Capture(err string, message ...string) {
+	var tmp string
+	for i, val := range message {
+		if i == 0 {
+			tmp += val
+		} else {
+			tmp += fmt.Sprintf("\n\n%s", val)
+		}
+	}
+
+	publishError(errors.New(err), []byte(tmp), false)
 }
 
 func publishError(errs error, reqBody []byte, withStackTrace bool) {
@@ -179,10 +189,10 @@ func publishError(errs error, reqBody []byte, withStackTrace bool) {
 	}
 
 	if reqBody != nil {
-		t = t + (" ```" + string(reqBody) + "```")
+		t = t + ("\n```\n" + string(reqBody) + "```")
 	}
 	if errorStack != nil && withStackTrace {
-		t = t + (" ```" + string(errorStack) + "```")
+		t = t + ("\n```\n" + string(errorStack) + "```")
 	}
 	if slackWebhookURL != "" {
 		go postToSlack(t)
