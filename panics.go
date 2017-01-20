@@ -143,7 +143,7 @@ func publishError(errs error, reqBody []byte, withStackTrace bool) {
 		t = t + ("\n```\n" + string(reqBody) + "```")
 	}
 	if errorStack != nil && withStackTrace {
-		t = t + ("\n```\n" + string(errorStack) + "```")
+		t = t + ("\n\n```\n" + string(errorStack) + "```")
 	}
 	if slackWebhookURL != "" {
 		go postToSlack(t)
