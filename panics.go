@@ -18,8 +18,6 @@ import (
 )
 
 var (
-	client *http.Client
-
 	env          string
 	filepath     string
 	slackWebhook string
@@ -53,8 +51,6 @@ func SetOptions(o *Options) {
 }
 
 func init() {
-	client = new(http.Client)
-
 	env = os.Getenv("TKPENV")
 }
 
@@ -204,12 +200,7 @@ func postToSlack(text, snip string) {
 	}
 	b, _ := json.Marshal(payload)
 
-	req, err := http.NewRequest("POST", slackWebhook, bytes.NewBuffer(b))
-	if err != nil {
-		log.Printf("[panics] error on capturing error : %s \n", err.Error())
-	}
-
-	resp, err := client.Do(req)
+	resp, err := http.DefaultClient.Post(slackWebhook, "application/json", bytes.NewBuffer(b))
 	if err != nil {
 		log.Printf("[panics] error on capturing error : %s \n", err.Error())
 	}
