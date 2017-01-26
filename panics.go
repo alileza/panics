@@ -19,42 +19,31 @@ import (
 
 var (
 	client *http.Client
-	file   *os.File
 
 	env          string
 	filepath     string
-	slackWebhook SlackWebhook
+	slackWebhook string
+	slackChannel string
 	tagString    string
 )
 
 type Tags map[string]string
-type SlackWebhook struct {
-	URL     string
-	Channel string
-}
 
 type Options struct {
 	Env          string
 	Filepath     string
 	SentryDSN    string
-	SlackWebhook SlackWebhook
+	SlackWebhook string
+	SlackChannel string
 	Tags         Tags
 }
 
 func SetOptions(o *Options) {
 	filepath = o.Filepath
 	slackWebhook = o.SlackWebhook
+	slackChannel = o.SlackChannel
 
 	env = o.Env
-
-	if filepath != "" {
-		var err error
-		fp := filepath + "/panics.log"
-		file, err = os.OpenFile(fp, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
-		if err != nil {
-			log.Printf("[panics] failed to open file %s", fp)
-		}
-	}
 
 	var tmp []string
 	for key, val := range o.Tags {
@@ -182,13 +171,20 @@ func publishError(errs error, reqBody []byte, withStackTrace bool) {
 		snip = fmt.Sprintf("```\n%s```", string(errorStack))
 	}
 
-	if slackWebhook.URL != "" {
+	if slackWebhook != "" {
 		go postToSlack(buffer.String(), snip)
 	}
-	if file != nil {
+	if filepath != "" {
 		go func() {
+			fp := fmt.Sprintf("%s/panics.log", filepath)
+			file, err := os.OpenFile(fp, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
+			if err != nil {
+				log.Printf("[panics] failed to open file %s", fp)
+				return
+			}
 			file.Write([]byte(text))
 			file.Write([]byte(snip + "\r\n"))
+			file.Close()
 		}()
 	}
 }
@@ -203,12 +199,12 @@ func postToSlack(text, snip string) {
 			},
 		},
 	}
-	if slackWebhook.Channel != "" {
-		payload["channel"] = slackWebhook.Channel
+	if slackChannel != "" {
+		payload["channel"] = slackChannel
 	}
 	b, _ := json.Marshal(payload)
 
-	req, err := http.NewRequest("POST", slackWebhook.URL, bytes.NewBuffer(b))
+	req, err := http.NewRequest("POST", slackWebhook, bytes.NewBuffer(b))
 	if err != nil {
 		log.Printf("[panics] error on capturing error : %s \n", err.Error())
 	}
