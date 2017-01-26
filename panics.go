@@ -18,27 +18,27 @@ import (
 )
 
 var (
-	env          string
-	filepath     string
-	slackWebhook string
-	slackChannel string
-	tagString    string
+	env             string
+	filepath        string
+	slackWebhookURL string
+	slackChannel    string
+	tagString       string
 )
 
 type Tags map[string]string
 
 type Options struct {
-	Env          string
-	Filepath     string
-	SentryDSN    string
-	SlackWebhook string
-	SlackChannel string
-	Tags         Tags
+	Env             string
+	Filepath        string
+	SentryDSN       string
+	SlackWebhookURL string
+	SlackChannel    string
+	Tags            Tags
 }
 
 func SetOptions(o *Options) {
 	filepath = o.Filepath
-	slackWebhook = o.SlackWebhook
+	slackWebhookURL = o.SlackWebhookURL
 	slackChannel = o.SlackChannel
 
 	env = o.Env
@@ -167,7 +167,7 @@ func publishError(errs error, reqBody []byte, withStackTrace bool) {
 		snip = fmt.Sprintf("```\n%s```", string(errorStack))
 	}
 
-	if slackWebhook != "" {
+	if slackWebhookURL != "" {
 		go postToSlack(buffer.String(), snip)
 	}
 	if filepath != "" {
@@ -200,7 +200,7 @@ func postToSlack(text, snip string) {
 	}
 	b, _ := json.Marshal(payload)
 
-	resp, err := http.DefaultClient.Post(slackWebhook, "application/json", bytes.NewBuffer(b))
+	resp, err := http.DefaultClient.Post(slackWebhookURL, "application/json", bytes.NewBuffer(b))
 	if err != nil {
 		log.Printf("[panics] error on capturing error : %s \n", err.Error())
 	}
