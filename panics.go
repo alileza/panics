@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"os"
@@ -22,6 +23,7 @@ var (
 	file   *os.File
 
 	env             string
+	ipAddress       string
 	filepath        string
 	slackWebhookURL string
 	tagString       string
@@ -30,7 +32,8 @@ var (
 type Tags map[string]string
 
 type Options struct {
-	Env             string
+	EnvKey          string
+	ShowIP          bool
 	Filepath        string
 	SentryDSN       string
 	SlackWebhookURL string
@@ -41,9 +44,17 @@ func SetOptions(o *Options) {
 	filepath = o.Filepath
 	slackWebhookURL = o.SlackWebhookURL
 
-	env = o.Env
+	env = o.EnvKey
 
 	var err error
+
+	if o.ShowIP {
+		ipAddress, err = findMyIP()
+		if err != nil {
+			log.Printf("[panics] cannot find IP, %s", err.Error())
+		}
+	}
+
 	fp := filepath + "/panics.log"
 	file, err = os.OpenFile(fp, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
 	if err != nil {
@@ -57,10 +68,48 @@ func SetOptions(o *Options) {
 	tagString = strings.Join(tmp, " | ")
 }
 
+func findMyIP() (string, error) {
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return "", err
+	}
+
+	for _, iface := range ifaces {
+		if iface.Flags&net.FlagUp == 0 {
+			continue // interface down
+		}
+		if iface.Flags&net.FlagLoopback != 0 {
+			continue // loopback interface
+		}
+
+		addrs, err := iface.Addrs()
+		if err != nil {
+			return "", err
+		}
+
+		for _, addr := range addrs {
+			var ip net.IP
+			switch v := addr.(type) {
+			case *net.IPNet:
+				ip = v.IP
+			case *net.IPAddr:
+				ip = v.IP
+			}
+			if ip == nil || ip.IsLoopback() {
+				continue
+			}
+			ip = ip.To4()
+			if ip == nil {
+				continue // not an ipv4 address
+			}
+			return ip.String(), nil
+		}
+	}
+	return "", errors.New("not connected to networks")
+}
+
 func init() {
 	client = new(http.Client)
-
-	env = os.Getenv("TKPENV")
 }
 
 // CaptureHandler handle panic on http handler.
@@ -133,7 +182,7 @@ func Capture(err string, message ...string) {
 
 func publishError(errs error, reqBody []byte, withStackTrace bool) {
 	errorStack := debug.Stack()
-	t := fmt.Sprintf(`[%s] *%s*`, env, errs.Error())
+	t := fmt.Sprintf(`[%s|%s] *%s*`, env, ipAddress, errs.Error())
 
 	if len(tagString) > 0 {
 		t = t + " | " + tagString
