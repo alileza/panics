@@ -195,10 +195,13 @@ func publishError(errs error, reqBody []byte, withStackTrace bool) {
 
 func postToSlack(text, snip string) {
 	payload := map[string]interface{}{
-		"text": text,
+		"text":       text,
+		"link_names": 1,
 		"attachments": []map[string]interface{}{
 			map[string]interface{}{
 				"text":      snip,
+				"color":     "#e50606",
+				"title":     "Stack Trace",
 				"mrkdwn_in": []string{"text"},
 			},
 		},
