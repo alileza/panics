@@ -23,6 +23,7 @@ var (
 	slackWebhookURL string
 	slackChannel    string
 	tagString       string
+	customMessage   string
 )
 
 type Tags map[string]string
@@ -34,6 +35,7 @@ type Options struct {
 	SlackWebhookURL string
 	SlackChannel    string
 	Tags            Tags
+	CustomMessage   string
 }
 
 func SetOptions(o *Options) {
@@ -48,6 +50,8 @@ func SetOptions(o *Options) {
 		tmp = append(tmp, fmt.Sprintf("`%s: %s`", key, val))
 	}
 	tagString = strings.Join(tmp, " | ")
+
+	customMessage = o.CustomMessage
 }
 
 func init() {
@@ -158,6 +162,10 @@ func publishError(errs error, reqBody []byte, withStackTrace bool) {
 		buffer.WriteString(" | " + tagString)
 	}
 
+	if customMessage != "" {
+		buffer.WriteString("\n" + customMessage)
+	}
+
 	if reqBody != nil {
 		buffer.WriteString(fmt.Sprintf(" ```%s``` ", string(reqBody)))
 	}
@@ -187,10 +195,13 @@ func publishError(errs error, reqBody []byte, withStackTrace bool) {
 
 func postToSlack(text, snip string) {
 	payload := map[string]interface{}{
-		"text": text,
+		"text":       text,
+		"link_names": 1,
 		"attachments": []map[string]interface{}{
 			map[string]interface{}{
 				"text":      snip,
+				"color":     "#e50606",
+				"title":     "Stack Trace",
 				"mrkdwn_in": []string{"text"},
 			},
 		},
